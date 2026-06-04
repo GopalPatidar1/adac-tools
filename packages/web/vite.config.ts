@@ -16,7 +16,6 @@ export default defineConfig({
         '**/packages/icons-aws/assets/**',
         '**/packages/icons-gcp/assets/**',
         '**/packages/icons-azure/assets/**',
-        '**/packages/web/public/assets/**',
       ],
     },
     proxy: {

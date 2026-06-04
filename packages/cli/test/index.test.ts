@@ -1,13 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { runCLI } from '../src/index.js';
 import type { CostBreakdown } from '../src/index.js';
+import { execFile } from 'child_process';
 
 vi.mock('child_process', () => ({
-  exec: vi.fn((_command: string, callback?: (error: Error | null) => void) => {
-    callback?.(null);
-    return {};
-  }),
+  execFile: vi.fn(
+    (
+      _file: string,
+      _args: readonly string[],
+      callback?: (error: Error | null) => void
+    ) => {
+      callback?.(null);
+      return {};
+    }
+  ),
 }));
+
+const mockExecFile = vi.mocked(execFile);
 
 describe('ADAC CLI', () => {
   const mockOptions = {
@@ -477,6 +486,7 @@ describe('ADAC CLI - Branch Coverage', () => {
       mockExit as unknown as typeof process.exit;
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockExecFile.mockClear();
   });
 
   afterEach(() => {
@@ -512,6 +522,12 @@ describe('ADAC CLI - Branch Coverage', () => {
     const allLogs = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
     // Should attempt to launch browser
     expect(allLogs).toContain('Automatically launching browser');
+    const launchCall = mockExecFile.mock.calls.at(-1);
+    expect(launchCall?.[0]).toBe('rundll32');
+    expect(launchCall?.[1]).toEqual([
+      'url.dll,FileProtocolHandler',
+      expect.stringContaining('test.svg'),
+    ]);
   });
 
   it('should handle diagram generation with Linux platform', async () => {
@@ -535,6 +551,40 @@ describe('ADAC CLI - Branch Coverage', () => {
     // Verify Linux browser launch
     const allLogs = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
     expect(allLogs).toContain('Automatically launching browser');
+    const launchCall = mockExecFile.mock.calls.at(-1);
+    expect(launchCall?.[0]).toBe('xdg-open');
+    expect(launchCall?.[1]).toEqual([expect.stringContaining('test.svg')]);
+  });
+
+  it('should log browser launch errors without failing diagram generation', async () => {
+    mockExecFile.mockImplementationOnce(
+      (
+        _file: string,
+        _args: readonly string[],
+        callback?: (error: Error | null) => void
+      ) => {
+        callback?.(new Error('browser launch failed'));
+        return {};
+      }
+    );
+
+    const generateDiagram = vi.fn().mockResolvedValue(undefined);
+    const options = {
+      generateDiagram,
+      parseAdac: vi.fn().mockReturnValue({}),
+      validateAdacConfig: vi.fn().mockReturnValue({ valid: true }),
+      version: '1.0.0',
+    };
+
+    process.argv = ['node', 'adac', 'diagram', 'test.yaml'];
+    await runCLI(options);
+
+    expect(generateDiagram).toHaveBeenCalled();
+    expect(mockExit).not.toHaveBeenCalled();
+    const errorLogs = consoleErrorSpy.mock.calls
+      .map((c) => c.join(' '))
+      .join('\n');
+    expect(errorLogs).toContain('Failed to launch browser');
   });
 
   it('should handle validation with errors array', async () => {
@@ -664,6 +714,9 @@ describe('ADAC CLI - Branch Coverage', () => {
     expect(generateDiagram).toHaveBeenCalled();
     const allLogs = consoleSpy.mock.calls.map((c) => c.join(' ')).join('\n');
     expect(allLogs).toContain('Automatically launching browser');
+    const launchCall = mockExecFile.mock.calls.at(-1);
+    expect(launchCall?.[0]).toBe('open');
+    expect(launchCall?.[1]).toEqual([expect.stringContaining('test.svg')]);
   });
 
   it('should exit with code 1 when validation command throws', async () => {

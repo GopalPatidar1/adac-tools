@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import path from 'path';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 
 export type CostPeriod = 'hourly' | 'daily' | 'monthly' | 'yearly';
 export type PricingModel = 'on_demand' | 'reserved';
@@ -153,17 +153,21 @@ export function runCLI(options: CLIOptions) {
         if (!skipOpen) {
           console.log('Automatically launching browser to view diagram...');
 
-          let startCmd = '';
+          let browserCommand = '';
+          let browserArgs: string[] = [];
           if (process.platform === 'darwin') {
-            startCmd = `open "${outputPath}"`;
+            browserCommand = 'open';
+            browserArgs = [outputPath];
           } else if (process.platform === 'win32') {
-            startCmd = `start "" "${outputPath}"`;
+            browserCommand = 'rundll32';
+            browserArgs = ['url.dll,FileProtocolHandler', outputPath];
           } else {
-            startCmd = `xdg-open "${outputPath}"`;
+            browserCommand = 'xdg-open';
+            browserArgs = [outputPath];
           }
 
           await new Promise<void>((resolve) => {
-            exec(startCmd, (err) => {
+            execFile(browserCommand, browserArgs, (err) => {
               if (err) {
                 console.error('Failed to launch browser:', err.message);
               }

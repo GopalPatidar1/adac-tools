@@ -295,7 +295,9 @@ describe('Flow', () => {
     // Run compliance
     fireEvent.click(screen.getByTestId('run-compliance-btn'));
     await waitFor(() => {
-      expect(mockRunComplianceCheck).toHaveBeenCalled();
+      expect(mockRunComplianceCheck).toHaveBeenCalledWith(
+        expect.stringContaining('version:')
+      );
     });
 
     // Close panel
@@ -310,7 +312,10 @@ describe('Flow', () => {
     fireEvent.click(screen.getByText('Export Diagram'));
 
     await waitFor(() => {
-      expect(mockGenerateDiagram).toHaveBeenCalled();
+      expect(mockGenerateDiagram).toHaveBeenCalledWith(
+        expect.stringContaining('version:'),
+        'elk'
+      );
     });
   });
 });
