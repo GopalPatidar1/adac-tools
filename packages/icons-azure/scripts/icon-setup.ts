@@ -314,7 +314,9 @@ async function main() {
   console.log('\nDone! 🎉');
 }
 
-main().catch((err) => {
-  console.error('❌ Error during Azure icon setup:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('❌ Error during Azure icon setup:', err);
+    process.exit(1);
+  });
+}
