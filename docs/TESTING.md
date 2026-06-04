@@ -54,17 +54,3 @@ pnpm dev
 Navigate to `http://localhost:5173`.
 
 ## 5. API Testing
-
-Start the backend server:
-
-```bash
-node packages/web-server/dist/index.js
-```
-
-Generate via API:
-
-```bash
-curl -X POST http://localhost:3000/api/generate \
-  -H "Content-Type: application/json" \
-  -d '{"content": "..."}'
-```

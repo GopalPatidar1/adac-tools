@@ -15,7 +15,6 @@ export default defineConfig({
     '@mindfiredigital/adac-cost',
     '@mindfiredigital/adac-export-terraform',
     'elkjs',
-    'fs-extra',
     'axios',
     'adm-zip',
     'js-yaml',

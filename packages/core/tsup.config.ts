@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/icon-resolver-browser.ts'],
   format: ['cjs', 'esm'],
   dts: true,
   clean: true,
@@ -21,7 +21,6 @@ export default defineConfig({
     '@mindfiredigital/adac-cost',
     '@mindfiredigital/adac-optimizer',
     'elkjs',
-    'fs-extra',
   ],
   external: ['web-worker'],
 });

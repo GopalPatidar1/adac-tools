@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { runCLI } from '../src/index.js';
 import type { CostBreakdown } from '../src/index.js';
 
+vi.mock('child_process', () => ({
+  exec: vi.fn((_command: string, callback?: (error: Error | null) => void) => {
+    callback?.(null);
+    return {};
+  }),
+}));
+
 describe('ADAC CLI', () => {
   const mockOptions = {
     generateDiagram: vi.fn().mockResolvedValue(undefined),

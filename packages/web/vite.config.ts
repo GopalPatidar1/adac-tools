@@ -5,6 +5,20 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
+    watch: {
+      ignored: [
+        '**/.git/**',
+        '**/.vite/**',
+        '**/coverage/**',
+        '**/dist/**',
+        '**/node_modules/**',
+        '**/public/assets/**',
+        '**/packages/icons-aws/assets/**',
+        '**/packages/icons-gcp/assets/**',
+        '**/packages/icons-azure/assets/**',
+        '**/packages/web/public/assets/**',
+      ],
+    },
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:3000',

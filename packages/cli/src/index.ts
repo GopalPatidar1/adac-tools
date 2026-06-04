@@ -162,10 +162,13 @@ export function runCLI(options: CLIOptions) {
             startCmd = `xdg-open "${outputPath}"`;
           }
 
-          exec(startCmd, (err) => {
-            if (err) {
-              console.error('Failed to launch browser:', err.message);
-            }
+          await new Promise<void>((resolve) => {
+            exec(startCmd, (err) => {
+              if (err) {
+                console.error('Failed to launch browser:', err.message);
+              }
+              resolve();
+            });
           });
         }
       } catch (error: unknown) {

@@ -1,6 +1,26 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Flow from './flow';
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import {
+  generateDiagramWithOptionalBackend,
+  runComplianceCheck,
+} from '../lib/diagram-generator';
+
+vi.mock('../lib/diagram-generator', () => ({
+  generateDiagramWithOptionalBackend: vi.fn().mockResolvedValue({
+    svg: '<svg>test</svg>',
+    logs: [],
+    duration: 0,
+  }),
+  runComplianceCheck: vi.fn().mockResolvedValue({
+    byService: {},
+    results: [],
+    remediationPlan: [],
+  }),
+}));
+
+const mockGenerateDiagram = vi.mocked(generateDiagramWithOptionalBackend);
+const mockRunComplianceCheck = vi.mocked(runComplianceCheck);
 
 // Mock React Flow hooks and components
 vi.mock('@xyflow/react', async () => {
@@ -91,6 +111,12 @@ describe('Flow', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    mockGenerateDiagram.mockReset();
+    mockGenerateDiagram.mockResolvedValue({
+      svg: '<svg>test</svg>',
+      logs: [],
+      duration: 0,
+    });
   });
 
   it('renders correctly with toolbar', () => {
@@ -255,14 +281,6 @@ describe('Flow', () => {
   });
 
   it('handles panel toggles and compliance check', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ byService: { 'node-1': [] } }),
-      })
-    );
-
     render(<Flow {...defaultProps} />);
 
     // Toggle cost panel
@@ -277,7 +295,7 @@ describe('Flow', () => {
     // Run compliance
     fireEvent.click(screen.getByTestId('run-compliance-btn'));
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockRunComplianceCheck).toHaveBeenCalled();
     });
 
     // Close panel
@@ -288,19 +306,11 @@ describe('Flow', () => {
   });
 
   it('triggers diagram export', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ svg: '<svg>test</svg>' }),
-      })
-    );
-
     render(<Flow {...defaultProps} />);
     fireEvent.click(screen.getByText('Export Diagram'));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled();
+      expect(mockGenerateDiagram).toHaveBeenCalled();
     });
   });
 });

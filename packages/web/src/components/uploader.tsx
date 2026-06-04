@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileText, ArrowRight, Loader } from 'lucide-react';
+import { generateDiagramWithOptionalBackend } from '../lib/diagram-generator';
 
 /**
  * Uploader component for ADAC YAML files.
@@ -31,23 +32,7 @@ export const Uploader = ({ onBack }: UploaderProps) => {
 
     try {
       const text = await file.text();
-
-      // Assuming the api endpoint is at the root since we are proxying or strictly same origin
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: text,
-          layout: 'elk', // Default to ELK
-        }),
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Failed to generate diagram');
-      }
-
-      const result = await response.json();
+      const result = await generateDiagramWithOptionalBackend(text, 'elk');
       setSvgContent(result.svg);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Unknown error';

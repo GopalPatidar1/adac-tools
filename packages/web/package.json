@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "setup:icons": "node -e \"const fs=require('fs');const path=require('path');const copy=(s,d,n)=>{const src=path.resolve(__dirname,s);const dest=path.resolve(__dirname,d);if(!fs.existsSync(dest)&&fs.existsSync(src)){fs.cpSync(src,dest,{recursive:true});console.log(n+' icons copied successfully');}else if(fs.existsSync(dest)){console.log(n+' icons already present');}else{console.warn('Warning: '+n+' assets not found at',src);}};copy('../icons-aws/assets/Architecture-Service-Icons_07312025','public/assets/Architecture-Service-Icons_07312025','AWS');copy('../icons-gcp/assets/gcp-icons','public/assets/gcp-icons','GCP');copy('../icons-azure/assets/azure-icons','public/assets/azure-icons','Azure');\"",
+    "setup:icons": "node -e \"const fs=require('fs');const path=require('path');const copy=(s,d,n)=>{const src=path.resolve(__dirname,s);const dest=path.resolve(__dirname,d);if(fs.existsSync(src)){fs.cpSync(src,dest,{recursive:true,force:true});console.log(n+' icons copied successfully');}else{console.warn('Warning: '+n+' assets not found at',src);}};copy('../icons-aws/assets/Architecture-Service-Icons_07312025','public/assets/Architecture-Service-Icons_07312025','AWS architecture');copy('../icons-aws/assets/aws-icons','public/assets/aws-icons','AWS sidebar');copy('../icons-gcp/assets/gcp-icons','public/assets/gcp-icons','GCP');copy('../icons-azure/assets/azure-icons','public/assets/azure-icons','Azure');\"",
     "predev": "npm run setup:icons",
+    "prebuild": "npm run setup:icons",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -16,8 +17,8 @@
   },
   "dependencies": {
     "@mindfiredigital/adac-diagram": "workspace:*",
-    "@mindfiredigital/adac-parser": "workspace:*",
     "@mindfiredigital/adac-schema": "workspace:*",
+    "@mindfiredigital/adac-compliance": "workspace:*",
     "@xyflow/react": "^12.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.0.0",

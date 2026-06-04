@@ -33,6 +33,10 @@ import {
   type ComplianceCheckResponse,
 } from './cost-compliance-panel';
 import type { Provider } from '../app';
+import {
+  generateDiagramWithOptionalBackend,
+  runComplianceCheck,
+} from '../lib/diagram-generator';
 
 const nodeTypes = {
   customNode: CustomNode,
@@ -153,10 +157,7 @@ export const generateYaml = (
 
   // Map Nodes to Services
   nodes.forEach((node) => {
-    let iconPath = node.data.icon as string;
-    if (iconPath && iconPath.startsWith('/assets/')) {
-      iconPath = 'packages/web/public' + iconPath;
-    }
+    const iconPath = node.data.icon as string;
 
     const serviceType = getServiceType(
       node.data.label as string,
@@ -373,14 +374,7 @@ const Flow = ({ onBack, provider }: EditorProps) => {
     setIsCheckingCompliance(true);
     try {
       const yamlStr = generateYaml(nodes, edges, provider);
-      const response = await fetch('/api/compliance-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: yamlStr }),
-      });
-
-      if (!response.ok) throw new Error('Compliance check failed');
-      const result: ComplianceCheckResponse = await response.json();
+      const result: ComplianceCheckResponse = await runComplianceCheck(yamlStr);
       setComplianceResults(result);
 
       // Update node compliance statuses
@@ -400,7 +394,7 @@ const Flow = ({ onBack, provider }: EditorProps) => {
       );
     } catch (e) {
       console.error('Compliance check error:', e);
-      alert('Failed to run compliance check. Make sure the server is running.');
+      alert('Failed to run compliance check.');
     } finally {
       setIsCheckingCompliance(false);
     }
@@ -423,17 +417,7 @@ const Flow = ({ onBack, provider }: EditorProps) => {
     setGenerating(true);
     try {
       const yamlStr = generateYaml(nodes, edges, provider);
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: yamlStr,
-          layout: 'elk',
-        }),
-      });
-
-      if (!response.ok) throw new Error('Generation failed');
-      const result = await response.json();
+      const result = await generateDiagramWithOptionalBackend(yamlStr, 'elk');
 
       const blob = new Blob([result.svg], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
