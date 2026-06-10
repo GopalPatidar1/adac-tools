@@ -18,6 +18,12 @@ vi.mock('child_process', () => ({
 
 const mockExecFile = vi.mocked(execFile);
 
+vi.mock('child_process', () => ({
+  exec: vi.fn((_cmd, cb) => {
+    if (cb) cb(null, '', '');
+  }),
+}));
+
 describe('ADAC CLI', () => {
   const mockOptions = {
     generateDiagram: vi.fn().mockResolvedValue(undefined),
