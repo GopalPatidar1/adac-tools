@@ -1,0 +1,240 @@
+/* ═══════════════════════════════════════════
+   ADAC Tools — Homepage Styles (GPX Aesthetic)
+   Clean dark mode, system fonts, solid red highlights
+   ═══════════════════════════════════════════ */
+
+/* ── Hero Section ── */
+.hero {
+  position: relative;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--background);
+  padding: 5rem 1.5rem;
+  text-align: center;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 10;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Glowing Blob behind CTA */
+.heroBlob {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(228, 0, 22, 0.08), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Hero Typography ── */
+.heroTitle {
+  font-size: clamp(3rem, 6vw, 4rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.025em !important;
+  margin-bottom: 1.25rem !important;
+  color: var(--foreground);
+}
+
+.highlightText {
+  color: #e40016; /* Solid red */
+}
+
+.heroSubtitle {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--muted-fg);
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+}
+
+/* ── Buttons ── */
+.heroButtons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff !important;
+  background-color: #e40016;
+  text-decoration: none !important;
+  transition: all 0.3s ease;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(228, 0, 22, 0.25);
+  background-color: #cd0014;
+}
+
+.btnOutline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground) !important;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  text-decoration: none !important;
+  transition: all 0.3s ease;
+}
+
+.btnOutline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+[data-theme='light'] .btnOutline:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* ═══ Features Section ═══ */
+.features {
+  padding: 5rem 1.5rem;
+  background-color: var(--background);
+}
+
+.featuresContainer {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.featureCard {
+  position: relative;
+  padding: 2rem;
+  border-radius: 16px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+}
+
+.featureIconWrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: rgba(228, 0, 22, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.featureTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.featureDesc {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--muted-fg);
+  margin: 0;
+}
+
+/* Glowing Bottom Border on Cards */
+.featureCardBorder {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  background: linear-gradient(90deg, var(--ifm-color-primary), transparent);
+}
+
+/* ═══ Quick Start Section ═══ */
+.quickstart {
+  padding: 5rem 1.5rem 8rem;
+  background-color: var(--background);
+}
+
+.quickstartContainer {
+  max-width: 768px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.quickstartTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--foreground);
+}
+
+.codeBlock {
+  border-radius: 12px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  text-align: left;
+  overflow: hidden;
+}
+
+.codePre {
+  margin: 0 !important;
+  padding: 1.25rem 1.5rem !important;
+  font-size: 0.875rem !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  line-height: 1.6 !important;
+  color: var(--foreground) !important;
+  background: transparent !important;
+  border: none !important;
+  overflow-x: auto;
+}
+
+.codeComment {
+  color: var(--muted-fg);
+}
+
+.codePrompt {
+  color: #e40016;
+  margin-right: 0.5rem;
+}

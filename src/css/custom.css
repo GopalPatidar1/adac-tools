@@ -1,0 +1,142 @@
+/**
+ * ADAC Tools Documentation — Custom Styles
+ * Matched to GPX UI aesthetic: clean dark-mode, system fonts,
+ * solid red accents, glowing blobs, and smooth card hover effects.
+ */
+
+/* Import Tailwind directives without Preflight (which breaks Docusaurus Infima) */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+/* Override TW v4 dark variant to use Docusaurus's data-theme attribute */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── Light Mode ── */
+:root {
+  --ifm-color-primary: #e40016;
+  --ifm-color-primary-dark: #cd0014;
+  --ifm-color-primary-darker: #c20013;
+  --ifm-color-primary-darkest: #a00010;
+  --ifm-color-primary-light: #fb0018;
+  --ifm-color-primary-lighter: #ff0d24;
+  --ifm-color-primary-lightest: #ff3c4e;
+  
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* GPX uses system UI fonts */
+  --ifm-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
+  --ifm-heading-font-weight: 700;
+  --ifm-font-weight-bold: 600;
+
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-navbar-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  --background: #ffffff;
+  --foreground: #1c1e21;
+  --muted-fg: #6b7280;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+}
+
+/* ── Dark Mode (GPX style) ── */
+[data-theme='dark'] {
+  --ifm-color-primary: #e40016;
+  --ifm-color-primary-dark: #cd0014;
+  --ifm-color-primary-darker: #c20013;
+  --ifm-color-primary-darkest: #a00010;
+  --ifm-color-primary-light: #fb0018;
+  --ifm-color-primary-lighter: #ff0d24;
+  --ifm-color-primary-lightest: #ff3c4e;
+  
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  --ifm-background-color: #1b1b1d;
+  --ifm-background-surface-color: #242526;
+  --ifm-navbar-background-color: rgba(27, 27, 29, 0.85);
+  --ifm-navbar-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+  --background: #1b1b1d;
+  --foreground: #e3e3e3;
+  --muted-fg: #9ca3af;
+  --card-bg: #212123;
+  --card-border: #374151;
+}
+
+@theme inline {
+  --color-primary: var(--ifm-color-primary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card-bg);
+}
+
+/* ── Global ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Navbar ── */
+.navbar {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.navbar__title {
+  font-weight: 700;
+}
+
+/* ── Docs Content ── */
+.markdown h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.markdown h2 {
+  font-weight: 700;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 0.5rem;
+}
+
+.markdown code {
+  border-radius: 6px;
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+}
+
+/* ── Code Blocks ── */
+.prism-code {
+  border-radius: 12px !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+[data-theme='dark'] .prism-code {
+  background: #141415 !important;
+  border-color: #374151 !important;
+}
+
+/* ── Admonitions ── */
+.alert {
+  border-radius: 12px;
+  border-left-width: 4px;
+}
+
+/* ── Scrollbar (dark mode) ── */
+[data-theme='dark'] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: #1b1b1d;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 999px;
+}
