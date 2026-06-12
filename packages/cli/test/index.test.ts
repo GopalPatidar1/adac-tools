@@ -1,10 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { runCLI } from '../src/index.js';
 import type { CostBreakdown } from '../src/index.js';
-import { execFile } from 'child_process';
 
-vi.mock('child_process', () => ({
-  execFile: vi.fn(
+const { mockExec, mockExecFile } = vi.hoisted(() => ({
+  mockExec: vi.fn(
+    (
+      _cmd: string,
+      cb?: (error: Error | null, stdout: string, stderr: string) => void
+    ) => {
+      cb?.(null, '', '');
+    }
+  ),
+  mockExecFile: vi.fn(
     (
       _file: string,
       _args: readonly string[],
@@ -16,12 +23,9 @@ vi.mock('child_process', () => ({
   ),
 }));
 
-const mockExecFile = vi.mocked(execFile);
-
 vi.mock('child_process', () => ({
-  exec: vi.fn((_cmd, cb) => {
-    if (cb) cb(null, '', '');
-  }),
+  exec: mockExec,
+  execFile: mockExecFile,
 }));
 
 describe('ADAC CLI', () => {
