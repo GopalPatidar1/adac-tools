@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import { parseAdacFromContent } from '@mindfiredigital/adac-parser';
 import { buildElkGraph } from '@mindfiredigital/adac-layout-elk';
-import { validateAdacConfig } from '@mindfiredigital/adac-schema';
+import { validateAdacConfig } from '@mindfiredigital/adac-layout-core';
 import { ComplianceChecker } from '@mindfiredigital/adac-compliance';
 import {
   OptimizerEngine,
   type OptimizationResult,
-} from '@mindfiredigital/adac-optimizer';
+} from '@mindfiredigital/adac-layout-core';
 import { renderSvg } from './renderer.js';
 
 type CostPeriod = 'hourly' | 'daily' | 'monthly' | 'yearly';
@@ -22,7 +22,7 @@ const optimizer = new OptimizerEngine();
 
 export async function generateDiagramSvg(
   inputContent: string,
-  layoutOverride?: 'elk' | 'dagre' | 'custom',
+  layoutOverride?: 'elk' | 'custom',
   validate: boolean = false,
   costData?: Record<string, number>,
   period: CostPeriod = 'monthly',
@@ -69,7 +69,7 @@ export async function generateDiagramSvg(
     }
 
     const graph = buildElkGraph(adac);
-    const engine = layoutOverride || adac.layout || 'elk';
+    const engine = layoutOverride || adac.layout || 'custom';
     const checker = new ComplianceChecker();
     const { byService } = checker.checkCompliance(adac);
 
@@ -138,7 +138,7 @@ export async function generateDiagramSvg(
 export async function generateDiagram(
   input: string,
   output: string,
-  layoutOverride?: 'elk' | 'dagre' | 'custom',
+  layoutOverride?: 'elk' | 'custom',
   validate: boolean = false,
   costData?: Record<string, number>,
   period: CostPeriod = 'monthly',

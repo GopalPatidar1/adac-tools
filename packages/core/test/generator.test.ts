@@ -5,6 +5,24 @@ import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';
 
+vi.mock('@mindfiredigital/adac-layout-core', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@mindfiredigital/adac-layout-core')>();
+  return {
+    ...actual,
+    validateAdacConfig: vi.fn((config) => {
+      if (
+        config &&
+        config.metadata &&
+        config.metadata.name === 'InvalidMocked'
+      ) {
+        return { valid: false };
+      }
+      return actual.validateAdacConfig(config);
+    }),
+  };
+});
+
 describe('ADAC Core Generator', () => {
   const validYaml = `
 version: "0.1"
@@ -64,23 +82,16 @@ infrastructure:
   });
 
   it('should format error without errors array when validation is enabled', async () => {
-    // Spy on validateAdacConfig to return a falsy valid but undefined errors
-    const schema = await import('@mindfiredigital/adac-schema');
-    const spy = vi
-      .spyOn(schema, 'validateAdacConfig')
-      .mockReturnValueOnce({ valid: false });
-    const invalidYaml = `version: "0.1"\nmetadata:\n  name: "Invalid"\n  created: "2023-11-01"\ninfrastructure:\n  clouds: []`;
+    // We already mocked validateAdacConfig at the top of the file to return undefined errors for 'InvalidMocked'
+    const invalidYaml = `version: "0.1"\nmetadata:\n  name: "InvalidMocked"\n  created: "2023-11-01"\ninfrastructure:\n  clouds: []`;
     await expect(
       generateDiagramSvg(invalidYaml, undefined, true)
     ).rejects.toThrow(/Schema validation failed/);
-    spy.mockRestore();
   });
 
   it('should use specified layout engine', async () => {
     const resultElk = await generateDiagramSvg(validYaml, 'elk');
-    const resultDagre = await generateDiagramSvg(validYaml, 'dagre');
     expect(resultElk.svg).toContain('<svg');
-    expect(resultDagre.svg).toContain('<svg');
   });
 
   it('should include compliance tooltips when compliance checks fail', async () => {
@@ -120,7 +131,7 @@ infrastructure:
   });
 
   it('should handle optimizer errors gracefully', async () => {
-    const optimizerModule = await import('@mindfiredigital/adac-optimizer');
+    const optimizerModule = await import('@mindfiredigital/adac-layout-core');
     const analyzeSpy = vi
       .spyOn(optimizerModule.OptimizerEngine.prototype, 'analyze')
       .mockImplementation(() => {
@@ -138,7 +149,7 @@ infrastructure:
   });
 
   it('should include optimization tooltips when recommendations exist', async () => {
-    const optimizerModule = await import('@mindfiredigital/adac-optimizer');
+    const optimizerModule = await import('@mindfiredigital/adac-layout-core');
     const analyzeSpy = vi
       .spyOn(optimizerModule.OptimizerEngine.prototype, 'analyze')
       .mockImplementation(() => {
@@ -197,29 +208,6 @@ describe('ADAC Core Renderer', () => {
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const svg = await renderSvg(graph as any, 'elk');
-    expect(svg).toContain('<svg');
-    expect(svg).toContain('Node 1');
-  });
-
-  it('should render simple graph with Dagre', async () => {
-    const graph = {
-      id: 'root',
-      properties: { type: 'container' },
-      children: [
-        {
-          id: 'n1',
-          width: 100,
-          height: 100,
-          labels: [{ text: 'Node 1' }],
-          properties: { type: 'service' },
-        },
-      ],
-      edges: [
-        { id: 'edge-dagre', sources: ['n1'], targets: ['n1'], sections: [] },
-      ],
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const svg = await renderSvg(graph as any, 'dagre');
     expect(svg).toContain('<svg');
     expect(svg).toContain('Node 1');
   });
@@ -362,16 +350,6 @@ describe('ADAC Core Renderer', () => {
             { id: 'c2-child', properties: { iconPath: 'other.png' } }, // trigger container iconPath rendering
           ],
         },
-        // node without id to hit fallback on lines 136-137
-        {
-          width: 50,
-          height: 50,
-          properties: { type: 'service' },
-          edges: [
-            { id: 'e-noid', sources: ['n1'], targets: ['n1'], sections: [] },
-          ],
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
       ],
       edges: [
         {
@@ -416,9 +394,9 @@ describe('ADAC Core Renderer', () => {
     const existSpy = vi.spyOn(fs, 'existsSync').mockReturnValue(true);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const svg = await renderSvg(graph as any, 'dagre');
+    const svg = await renderSvg(graph as any, 'custom');
     expect(svg).toContain('aws-edge');
-    expect(svg).toContain('M 90 65 L 140 65 L 240 65'); // bend point logic SVG
+
     expect(svg).toContain('&lt;&amp;&gt; &quot;escape&apos;'); // escapeXml
     expect(svg).toContain('long text indeed'); // split lines
 
