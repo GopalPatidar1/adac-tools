@@ -33,7 +33,6 @@ import {
   type ComplianceCheckResponse,
 } from './cost-compliance-panel';
 import { generateDiagramBrowser } from '../helper/diagram-generator';
-import type { GenerationResult } from '@mindfiredigital/adac-core';
 import type { Provider } from '../app';
 
 const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true';
@@ -424,7 +423,7 @@ const Flow = ({ onBack, provider }: EditorProps) => {
 
   const handleGenerateDiagram = async () => {
     setGenerating(true);
-    let result: GenerationResult;
+    let result;
     try {
       const yamlStr = generateYaml(nodes, edges, provider);
       if (USE_BACKEND) {

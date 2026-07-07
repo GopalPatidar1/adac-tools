@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileText, ArrowRight, Loader } from 'lucide-react';
 import { generateDiagramBrowser } from '../helper/diagram-generator';
-import type { GenerationResult } from '@mindfiredigital/adac-core';
 const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true';
 
 /**
@@ -32,7 +31,7 @@ export const Uploader = ({ onBack }: UploaderProps) => {
     setLoading(true);
     setError(null);
 
-    let results: GenerationResult;
+    let results;
 
     try {
       const text = await file.text();
@@ -134,8 +133,8 @@ export const Uploader = ({ onBack }: UploaderProps) => {
                 onClick={handleGenerate}
                 disabled={!file || loading}
                 className={`py-3 px-6 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${!file || loading
-                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
                   }`}
               >
                 {loading ? <Loader className="animate-spin" /> : <ArrowRight />}
