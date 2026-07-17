@@ -439,7 +439,7 @@ export async function renderSvg(
     // when there are many siblings. Cross-container edges are
     // routed using absolute node positions with orthogonal paths.
 
-    const CONTAINER_PAD = 48; // padding inside container boundaries
+    const CONTAINER_PAD = 40; // padding inside container boundaries
     const CONTAINER_TOP = 44; // extra top padding for label strip
     const NODE_GAP_X = 140; // horizontal gap between children
     const NODE_GAP_Y = 120; // vertical gap between rows
@@ -471,7 +471,7 @@ export async function renderSvg(
       }
 
       // Container: recursively lay out children first
-      const laidOutChildren: ElkNode[] = [];
+      let laidOutChildren: ElkNode[] = [];
       for (const child of node.children) {
         laidOutChildren.push(await layoutNode(child));
       }
@@ -492,6 +492,19 @@ export async function renderSvg(
       const hasStructuralChildren = laidOutChildren.some((c) =>
         hasCssClassToken(c, STRUCTURAL_CLASS_TOKENS)
       );
+
+      laidOutChildren = laidOutChildren.sort((a, b) => {
+        const aFirst =
+          a.layoutOptions?.['elk.layered.layering.layerConstraint'] === 'FIRST';
+        const bFirst =
+          b.layoutOptions?.['elk.layered.layering.layerConstraint'] === 'FIRST';
+
+        if (aFirst && !bFirst) return -1;
+        if (!aFirst && bFirst) return 1;
+
+        // Preserve ELK's ordering
+        return (a.x ?? 0) - (b.x ?? 0);
+      });
 
       if (
         localEdges.length > 0 &&
@@ -528,6 +541,8 @@ export async function renderSvg(
           return child;
         });
       } else {
+        let direction = node.properties?.direction;
+        const isVetical = direction === 'vertical';
         // Flow Layout (Masonry) for tightly packing mixed-size items
         const isAz = (c: ElkNode) => hasCssClassToken(c, ZONE_CLASS_TOKENS);
         const azChildren = laidOutChildren.filter((c) => isAz(c));
@@ -548,28 +563,43 @@ export async function renderSvg(
         });
 
         if (columns.length === 0 && nonAzChildren.length > 0) {
-          let maxChildWidth = 400;
+          let maxChildWidth = 0;
+          let maxChildHeight = 0;
+
           for (const c of nonAzChildren) {
             if (c.width && c.width > maxChildWidth) {
               maxChildWidth = c.width;
+            }
+            if (c.height && c.height > maxChildHeight) {
+              maxChildHeight = c.height;
             }
           }
           const numCols = Math.min(
             Math.ceil(Math.sqrt(nonAzChildren.length)),
             4
           );
+
+          let x = 0;
+          let y = CONTAINER_TOP;
           for (let i = 0; i < numCols; i++) {
+            let width = nonAzChildren[i]?.width ?? maxChildWidth;
+            const height = nonAzChildren[i]?.height ?? maxChildHeight;
+
             const colObj = {
-              x: i * (maxChildWidth + NODE_GAP_X),
-              w: maxChildWidth,
-              y: CONTAINER_TOP,
+              x,
+              w: width,
+              y,
             };
+
+            if (isVetical) y += NODE_GAP_Y + height;
+            else x += width + NODE_GAP_X;
+
             columns.push(colObj);
           }
         }
 
         const positionedNonAz: ElkNode[] = [];
-        nonAzChildren.forEach((c) => {
+        nonAzChildren.forEach((c, index) => {
           let minCol = columns[0] || { x: 0, w: 0, y: CONTAINER_TOP };
           for (const col of columns) {
             if (col.y < minCol.y) minCol = col;
@@ -581,7 +611,16 @@ export async function renderSvg(
             y: minCol.y,
           });
 
+          minCol.w = Math.max(minCol.w, c.width || 0);
+
+          // Update the height occupied by this column
           minCol.y += (c.height || 0) + NODE_GAP_Y;
+
+          let currentX = 0;
+          for (const col of columns) {
+            col.x = currentX;
+            currentX += col.w + NODE_GAP_X;
+          }
         });
 
         positionedChildren = [...positionedAzs, ...positionedNonAz];
@@ -599,9 +638,10 @@ export async function renderSvg(
       // Heuristic: ~8px per character + 80px padding for the pill structure
       const minLabelWidth = labelText.length * 8 + 80;
 
+      const width = Math.max(maxX + CONTAINER_PAD, minLabelWidth);
       return {
         ...node,
-        width: Math.max(maxX + CONTAINER_PAD, minLabelWidth),
+        width,
         height: maxY + CONTAINER_PAD,
         children: positionedChildren,
         edges: [],
@@ -711,7 +751,14 @@ export async function renderSvg(
       let sOffY = 0,
         tOffY = 0;
 
-      const isVertical = Math.abs(tgtCx - srcCx) < Math.abs(tgtCy - srcCy);
+      // const isVertical = tgtCy != srcCy;
+
+      const srcBottom = srcPos.y + srcPos.h;
+      const tgtBottom = tgtPos.y + tgtPos.h;
+
+      const overlapY =
+        Math.min(srcBottom, tgtBottom) - Math.max(srcPos.y, tgtPos.y);
+      const isVertical = !(overlapY > 0);
 
       if (isVertical) {
         if (Math.abs(srcCx - tgtCx) < 5) {
@@ -764,6 +811,12 @@ export async function renderSvg(
       let endPt: { x: number; y: number };
       let startStub: { x: number; y: number };
       let endStub: { x: number; y: number };
+
+      const dx = tgtCx - srcCx;
+      const dy = tgtCy - srcCy;
+
+      const horizontalScore = Math.abs(dx);
+      const verticalScore = Math.abs(dy);
 
       if (isVertical) {
         if (tgtTop > srcBot - 10) {
@@ -843,71 +896,74 @@ export async function renderSvg(
 
     // Attach routed edges at the root level
     layout.edges = routedEdges;
-  } else {
-    const elk = new ELK();
-    layout = (await elk.layout(graph)) as ElkNode;
-  }
 
-  const padding = 40;
-  if (layout.children && layout.children.length > 0) {
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity;
-    layout.children.forEach((child) => {
-      const cx = child.x || 0,
-        cy = child.y || 0,
-        cw = child.width || 0,
-        ch = child.height || 0;
-      minX = Math.min(minX, cx);
-      minY = Math.min(minY, cy);
-      maxX = Math.max(maxX, cx + cw);
-      maxY = Math.max(maxY, cy + ch);
-    });
+    const padding = 40;
 
-    // Also include edge coordinates in bounds calculation
-    // so that routed edges are never clipped
-    if (layout.edges) {
-      layout.edges.forEach((e) => {
-        e.sections?.forEach((s) => {
-          [s.startPoint, s.endPoint, ...(s.bendPoints || [])].forEach((pt) => {
-            minX = Math.min(minX, pt.x);
-            minY = Math.min(minY, pt.y);
-            maxX = Math.max(maxX, pt.x);
-            maxY = Math.max(maxY, pt.y);
-          });
-        });
-      });
-    }
-
-    if (minX !== Infinity) {
-      const shiftX = -minX + padding,
-        shiftY = -minY + padding;
-      layout.children.forEach((c) => {
-        if (c.x !== undefined) c.x += shiftX;
-        if (c.y !== undefined) c.y += shiftY;
+    if (layout.children && layout.children.length > 0) {
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity;
+      layout.children.forEach((child) => {
+        const cx = child.x || 0,
+          cy = child.y || 0,
+          cw = child.width || 0,
+          ch = child.height || 0;
+        minX = Math.min(minX, cx);
+        minY = Math.min(minY, cy);
+        maxX = Math.max(maxX, cx + cw);
+        maxY = Math.max(maxY, cy + ch);
       });
 
-      // Shift edge coordinates by the same amount so they
-      // stay aligned with the nodes after the viewBox adjustment
+      // Also include edge coordinates in bounds calculation
+      // so that routed edges are never clipped
       if (layout.edges) {
         layout.edges.forEach((e) => {
           e.sections?.forEach((s) => {
-            s.startPoint.x += shiftX;
-            s.startPoint.y += shiftY;
-            s.endPoint.x += shiftX;
-            s.endPoint.y += shiftY;
-            s.bendPoints?.forEach((b) => {
-              b.x += shiftX;
-              b.y += shiftY;
-            });
+            [s.startPoint, s.endPoint, ...(s.bendPoints || [])].forEach(
+              (pt) => {
+                minX = Math.min(minX, pt.x);
+                minY = Math.min(minY, pt.y);
+                maxX = Math.max(maxX, pt.x);
+                maxY = Math.max(maxY, pt.y);
+              }
+            );
           });
         });
       }
 
-      layout.width = maxX - minX + 2 * padding;
-      layout.height = maxY - minY + 2 * padding;
+      if (minX !== Infinity) {
+        const shiftX = -minX + padding,
+          shiftY = -minY + padding;
+        layout.children.forEach((c) => {
+          if (c.x !== undefined) c.x += shiftX;
+          if (c.y !== undefined) c.y += shiftY;
+        });
+
+        // Shift edge coordinates by the same amount so they
+        // stay aligned with the nodes after the viewBox adjustment
+        if (layout.edges) {
+          layout.edges.forEach((e) => {
+            e.sections?.forEach((s) => {
+              s.startPoint.x += shiftX;
+              s.startPoint.y += shiftY;
+              s.endPoint.x += shiftX;
+              s.endPoint.y += shiftY;
+              s.bendPoints?.forEach((b) => {
+                b.x += shiftX;
+                b.y += shiftY;
+              });
+            });
+          });
+        }
+
+        layout.width = maxX - minX + 2 * padding;
+        layout.height = maxY - minY + 2 * padding;
+      }
     }
+  } else {
+    const elk = new ELK();
+    layout = (await elk.layout(graph)) as ElkNode;
   }
 
   const width = layout.width || 800;

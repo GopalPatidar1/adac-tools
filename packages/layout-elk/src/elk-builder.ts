@@ -694,6 +694,7 @@ export function buildElkGraph(
         type: 'app',
         iconPath: detectIconForApp(app),
         title: app.type,
+        direction: app.direction,
         isStacked: app.type === 'cluster',
       },
       layoutOptions: buildLeafLayoutOptions(app.type || '', dynamicW, 100),
@@ -898,6 +899,7 @@ export function buildElkGraph(
               ? 'subnet'
               : undefined,
           iconPath: iconPath,
+          direction: service.direction,
           description: service.description || typeKey,
           isStacked: Boolean(isStackedSvc),
         },
