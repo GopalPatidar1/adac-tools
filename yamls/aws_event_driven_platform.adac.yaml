@@ -47,6 +47,10 @@ applications:
     name: ECS Fargate Worker
     type: compute
     technology: AWS ECS
+    contents:
+      - API Service 1
+      - API Service 2
+      - API Service 3
 
   - id: secrets-manager
     name: AWS Secrets Manager
@@ -112,10 +116,10 @@ infrastructure:
           type: container
           subtype: shared-services
           runs:
+            - frontend
             - edge-layer
             - vpc-main
             # - secrets-manager
-            - frontend
        
 connections:
   - id: users-to-edge
@@ -159,5 +163,10 @@ connections:
 
   - id: ecs-to-data-layer
     from: ecs-fargate
+    to: data-layer
+    type: https
+
+  - id: ecs-fargate-worker-to-data-layer
+    from: ecs-fargate-worker
     to: data-layer
     type: https

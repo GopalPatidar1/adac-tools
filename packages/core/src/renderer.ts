@@ -6,7 +6,7 @@ import { routeAStar } from './routing';
 
 let fsPromise: Promise<typeof import('fs-extra')> | undefined;
 
-const getFs = () => (fsPromise ??= import('fs-extra'));
+const getFs = () => (fsPromise ??= import('fs-extra').then(res => res.default));
 
 const CSS_STYLES = `
   /* ── Design Tokens ──────────────────────────────────── */
@@ -348,6 +348,18 @@ const CSS_STYLES = `
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+
+  .content-box {
+      fill: #fff;
+      stroke: #c8c8c8;
+      stroke-width: 1;
+  }
+  
+  .contents {
+      font-size: 11px;
+      fill: #444;
+      font-family: Arial, sans-serif;
+  }
 `;
 
 function getProvider(node: ElkNode): 'aws' | 'gcp' | 'azure' {
@@ -505,6 +517,8 @@ export async function renderSvg(
      * layout when children are disconnected.
      */
     const layoutNode = async (node: ElkNode): Promise<ElkNode> => {
+
+      const originalWidth = node.width;
       // Leaf node: return as-is
       if (!node.children || node.children.length === 0) {
         return {
@@ -608,22 +622,39 @@ export async function renderSvg(
           return res;
         });
 
+        const positionedNonAz: ElkNode[] = [];
+
         if (columns.length === 0 && nonAzChildren.length > 0) {
           let maxChildWidth = 0;
           let maxChildHeight = 0;
+          const numCols = Math.min(
+            Math.ceil(Math.sqrt(nonAzChildren.length)),
+            4
+          );
 
-          for (const c of nonAzChildren) {
+          // -----------------------------
+          // Compute Y of every row
+          // -----------------------------
+
+          const rows = Math.ceil(nonAzChildren.length / numCols);
+          const rowHeights = new Array(rows).fill(0);
+
+          for (const [index, c] of nonAzChildren.entries()) {
             if (c.width && c.width > maxChildWidth) {
               maxChildWidth = c.width;
             }
             if (c.height && c.height > maxChildHeight) {
               maxChildHeight = c.height;
             }
+
+            const row = Math.floor(index / numCols);
+
+            rowHeights[row] = Math.max(
+              rowHeights[row],
+              c.height || 0
+            );
           }
-          const numCols = Math.min(
-            Math.ceil(Math.sqrt(nonAzChildren.length)),
-            4
-          );
+
 
           let x = 0;
           let y = CONTAINER_TOP;
@@ -642,32 +673,45 @@ export async function renderSvg(
 
             columns.push(colObj);
           }
-        }
 
-        const positionedNonAz: ElkNode[] = [];
-        nonAzChildren.forEach((c, index) => {
-          let minCol = columns[0] || { x: 0, w: 0, y: CONTAINER_TOP };
-          for (const col of columns) {
-            if (col.y < minCol.y) minCol = col;
+          const rowY = new Array(rows).fill(0);
+
+          rowY[0] = CONTAINER_TOP;
+
+          for (let i = 1; i < rows; i++) {
+            rowY[i] =
+              rowY[i - 1] +
+              rowHeights[i - 1] +
+              NODE_GAP_Y;
           }
 
-          positionedNonAz.push({
-            ...c,
-            x: minCol.x + CONTAINER_PAD,
-            y: minCol.y,
+          nonAzChildren.forEach((c, index) => {
+            const row = Math.floor(index / numCols);
+            // let minCol = columns[0] || { x: 0, w: 0, y: CONTAINER_TOP };
+            // for (const col of columns) {
+            //   if (col.y < minCol.y) minCol = col;
+            // }
+
+            let minCol = columns[index % numCols]
+
+            positionedNonAz.push({
+              ...c,
+              x: minCol.x + CONTAINER_PAD,
+              y: rowY[row],
+            });
+
+            minCol.w = Math.max(minCol.w, c.width || 0);
+
+            // Update the height occupied by this column
+            minCol.y += (c.height || 0) + NODE_GAP_Y;
+
+            let currentX = 0;
+            for (const col of columns) {
+              col.x = currentX;
+              currentX += col.w + NODE_GAP_X;
+            }
           });
-
-          minCol.w = Math.max(minCol.w, c.width || 0);
-
-          // Update the height occupied by this column
-          minCol.y += (c.height || 0) + NODE_GAP_Y;
-
-          let currentX = 0;
-          for (const col of columns) {
-            col.x = currentX;
-            currentX += col.w + NODE_GAP_X;
-          }
-        });
+        }
 
         positionedChildren = [...positionedAzs, ...positionedNonAz];
       }
@@ -685,16 +729,21 @@ export async function renderSvg(
       const minLabelWidth = labelText.length * 8 + 80;
 
       const width = Math.max(maxX + CONTAINER_PAD, minLabelWidth);
-      return {
+      const amn = {
         ...node,
         width,
         height: maxY + CONTAINER_PAD,
         children: positionedChildren,
         edges: [],
       };
+      const widhtChange = amn.width;
+      console.log('**********widhtChange******originalWidth', node.width, width)
+
+      return amn;
     };
 
     layout = await layoutNode(graph);
+
     layout.properties = graph.properties;
 
     // Pass 1: Global absolute positioning calculation
@@ -1282,27 +1331,27 @@ export async function renderSvg(
 
         const offsets = isVertical
           ? [
-              { x: 0, y: 0 },
-              { x: 16, y: 0 },
-              { x: -16, y: 0 },
-              { x: 32, y: 0 },
-              { x: -32, y: 0 },
-              { x: 0, y: textLen / 2 + 10 },
-              { x: 0, y: -(textLen / 2 + 10) },
-              { x: 48, y: 0 },
-              { x: -48, y: 0 },
-            ]
+            { x: 0, y: 0 },
+            { x: 16, y: 0 },
+            { x: -16, y: 0 },
+            { x: 32, y: 0 },
+            { x: -32, y: 0 },
+            { x: 0, y: textLen / 2 + 10 },
+            { x: 0, y: -(textLen / 2 + 10) },
+            { x: 48, y: 0 },
+            { x: -48, y: 0 },
+          ]
           : [
-              { x: 0, y: 0 },
-              { x: 0, y: 16 },
-              { x: 0, y: -16 },
-              { x: 0, y: 32 },
-              { x: 0, y: -32 },
-              { x: textLen / 2 + 10, y: 0 },
-              { x: -(textLen / 2 + 10), y: 0 },
-              { x: 0, y: 48 },
-              { x: 0, y: -48 },
-            ];
+            { x: 0, y: 0 },
+            { x: 0, y: 16 },
+            { x: 0, y: -16 },
+            { x: 0, y: 32 },
+            { x: 0, y: -32 },
+            { x: textLen / 2 + 10, y: 0 },
+            { x: -(textLen / 2 + 10), y: 0 },
+            { x: 0, y: 48 },
+            { x: 0, y: -48 },
+          ];
 
         for (const off of offsets) {
           const cx = labelX + off.x;
@@ -1683,7 +1732,69 @@ export async function renderSvg(
           text-anchor="middle"
           dominant-baseline="auto">${escapeXml(truncate(line2))}</text>`;
       }
+
+
+      const contents: string[] = node?.properties?.contents;
+
+      if (contents) {
+        const GROUP_PADDING = 16;      // padding from card edge
+        const INNER_PADDING = 12;      // padding inside dashed border
+        const ITEM_H = 26;
+        const ITEM_GAP = 10;
+
+        const groupX = absX + GROUP_PADDING;
+        const groupY = line2Y + 18;
+        const groupW = CARD_W - GROUP_PADDING * 2;
+
+        const ITEM_W = groupW - INNER_PADDING * 2;
+
+        const groupHeight =
+          INNER_PADDING * 2 +
+          contents.length * ITEM_H +
+          Math.max(0, contents.length - 1) * ITEM_GAP;
+
+        // Dashed container
+        output += `<rect
+              x="${groupX}"
+              y="${groupY}"
+              width="${groupW}"
+              height="${groupHeight}"
+              rx="4"
+              ry="4"
+              fill="none"
+              stroke="#d2d2d2"
+              stroke-dasharray="4 4"
+            />
+        `;
+
+        let itemY = groupY + INNER_PADDING;
+
+        contents.forEach((text) => {
+          output += `<rect
+                x="${groupX + INNER_PADDING}"
+                y="${itemY}"
+                width="${ITEM_W}"
+                height="${ITEM_H}"
+                rx="3"
+                ry="3"
+                class="content-box"
+              />
+            
+              <text
+                x="${groupX + groupW / 2}"
+                y="${itemY + ITEM_H / 2}"
+                class="contents"
+                text-anchor="middle"
+                dominant-baseline="middle">
+                ${text}
+              </text>
+           `;
+
+          itemY += ITEM_H + ITEM_GAP;
+        });
+      }
     }
+
     for (const c of node.children ?? []) {
       output += await renderNode(c, absX, absY);
     }

@@ -739,10 +739,14 @@ export async function buildElkGraph(
     return opts;
   };
 
-  const calcNodeWidth = (label: string): number => {
+  const calcNodeWidth = (label: string, contents: string[] = []): number => {
+    const longestText = [label, ...contents].reduce(
+      (longest, text) => (text.length > longest.length ? text : longest),
+      label
+    );
     return Math.max(
       80,
-      label.length * NODE_LABEL_CHAR_WIDTH + NODE_LABEL_HORIZONTAL_PADDING
+      longestText.length * NODE_LABEL_CHAR_WIDTH + NODE_LABEL_HORIZONTAL_PADDING
     );
   };
 
@@ -750,17 +754,22 @@ export async function buildElkGraph(
   for (const app of adac.applications || []) {
     const iconPath = await detectIconForApp(app);
     const labelText = app.name || app.id;
-    const dynamicW = calcNodeWidth(labelText);
+    let dynamicW = calcNodeWidth(labelText, app.contents ?? []);
+
+    let dynamicH = 100;
+    if (app.contents?.length) { dynamicH += app.contents.length * 35 + 25; dynamicW += 20 }
+
     const node: ElkNode = {
       id: app.id,
       width: dynamicW,
-      height: 100,
+      height: dynamicH,
       labels: [{ text: labelText }],
       properties: {
         type: 'app',
         iconPath,
         title: app.type,
         direction: app.direction,
+        contents: app.contents,
         isStacked: app.type === 'cluster',
       },
       layoutOptions: buildLeafLayoutOptions(app.type || '', dynamicW, 100),
