@@ -68,7 +68,7 @@ async function loadIconMap(
     }
     console.warn(
       `Warning: Could not find ${provider.toUpperCase()} icon-map.json. ` +
-        `Run: pnpm --filter @mindfiredigital/adac-${PROVIDER_FOLDERS[provider]} setup-icons`
+      `Run: pnpm --filter @mindfiredigital/adac-${PROVIDER_FOLDERS[provider]} setup-icons`
     );
   } catch (e) {
     console.error(`Failed to load ${provider.toUpperCase()} icon-map.json`, e);
@@ -422,10 +422,10 @@ const GCP_NORMALIZED_MAP = new Map<string, string>();
 
 let initializePromise:
   | Promise<{
-      aws: Record<string, string>;
-      gcp: Record<string, string>;
-      azure: Record<string, string>;
-    }>
+    aws: Record<string, string>;
+    gcp: Record<string, string>;
+    azure: Record<string, string>;
+  }>
   | undefined;
 
 function initializeIconMaps() {
@@ -488,15 +488,15 @@ export async function buildElkGraph(
   const edgeRoutingMode = options.edgeRoutingMode ?? DEFAULT_EDGE_ROUTING_MODE;
   const edgeSpacing = isDenseGraph
     ? {
-        nodeNodeBetweenLayers: '180',
-        edgeNodeBetweenLayers: '100',
-        edgeEdgeBetweenLayers: '60',
-      }
+      nodeNodeBetweenLayers: '180',
+      edgeNodeBetweenLayers: '100',
+      edgeEdgeBetweenLayers: '60',
+    }
     : {
-        nodeNodeBetweenLayers: '140',
-        edgeNodeBetweenLayers: '60',
-        edgeEdgeBetweenLayers: '30',
-      };
+      nodeNodeBetweenLayers: '140',
+      edgeNodeBetweenLayers: '60',
+      edgeEdgeBetweenLayers: '30',
+    };
   const getIconPath = async (
     key: string,
     forceProvider?: 'aws' | 'gcp' | 'azure'
@@ -757,7 +757,10 @@ export async function buildElkGraph(
     let dynamicW = calcNodeWidth(labelText, app.contents ?? []);
 
     let dynamicH = 100;
-    if (app.contents?.length) { dynamicH += app.contents.length * 35 + 25; dynamicW += 20 }
+    if (app.contents?.length) {
+      dynamicH += app.contents.length * 35 + 25;
+      dynamicW += 20
+    }
 
     const node: ElkNode = {
       id: app.id,
@@ -772,7 +775,7 @@ export async function buildElkGraph(
         contents: app.contents,
         isStacked: app.type === 'cluster',
       },
-      layoutOptions: buildLeafLayoutOptions(app.type || '', dynamicW, 100),
+      layoutOptions: buildLeafLayoutOptions(app.type || '', dynamicW, dynamicH),
     };
     nodesMap.set(app.id, node);
   }
@@ -984,9 +987,9 @@ export async function buildElkGraph(
         },
         layoutOptions: isContainer
           ? {
-              ...CONTAINER_LAYOUT_OPTIONS,
-              'elk.nodeSize.minimum': `(${width}, ${height})`,
-            }
+            ...CONTAINER_LAYOUT_OPTIONS,
+            'elk.nodeSize.minimum': `(${width}, ${height})`,
+          }
           : buildLeafLayoutOptions(typeKey, dynamicW, dynamicH),
       };
       nodesMap.set(service.id, node);
