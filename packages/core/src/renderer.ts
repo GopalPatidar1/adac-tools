@@ -5,7 +5,8 @@ import { routeAStar } from './routing';
 
 let fsPromise: Promise<typeof import('fs-extra')> | undefined;
 
-const getFs = () => (fsPromise ??= import('fs-extra').then(res => res.default));
+const getFs = () =>
+  (fsPromise ??= import('fs-extra').then((res) => res.default));
 
 const CSS_STYLES = `
   /* ── Design Tokens ──────────────────────────────────── */
@@ -516,8 +517,6 @@ export async function renderSvg(
      * layout when children are disconnected.
      */
     const layoutNode = async (node: ElkNode): Promise<ElkNode> => {
-
-      const originalWidth = node.width;
       // Leaf node: return as-is
       if (!node.children || node.children.length === 0) {
         return {
@@ -600,7 +599,7 @@ export async function renderSvg(
           return child;
         });
       } else {
-        let direction = node.properties?.direction;
+        const direction = node.properties?.direction;
         const isVetical = direction === 'vertical';
         // Flow Layout (Masonry) for tightly packing mixed-size items
         const isAz = (c: ElkNode) => hasCssClassToken(c, ZONE_CLASS_TOKENS);
@@ -648,17 +647,13 @@ export async function renderSvg(
 
             const row = Math.floor(index / numCols);
 
-            rowHeights[row] = Math.max(
-              rowHeights[row],
-              c.height || 0
-            );
+            rowHeights[row] = Math.max(rowHeights[row], c.height || 0);
           }
-
 
           let x = 0;
           let y = CONTAINER_TOP;
           for (let i = 0; i < numCols; i++) {
-            let width = nonAzChildren[i]?.width ?? maxChildWidth;
+            const width = nonAzChildren[i]?.width ?? maxChildWidth;
             const height = nonAzChildren[i]?.height ?? maxChildHeight;
 
             const colObj = {
@@ -678,10 +673,7 @@ export async function renderSvg(
           rowY[0] = CONTAINER_TOP;
 
           for (let i = 1; i < rows; i++) {
-            rowY[i] =
-              rowY[i - 1] +
-              rowHeights[i - 1] +
-              NODE_GAP_Y;
+            rowY[i] = rowY[i - 1] + rowHeights[i - 1] + NODE_GAP_Y;
           }
 
           nonAzChildren.forEach((c, index) => {
@@ -691,7 +683,7 @@ export async function renderSvg(
             //   if (col.y < minCol.y) minCol = col;
             // }
 
-            let minCol = columns[index % numCols]
+            const minCol = columns[index % numCols];
 
             positionedNonAz.push({
               ...c,
@@ -735,8 +727,6 @@ export async function renderSvg(
         children: positionedChildren,
         edges: [],
       };
-      const widhtChange = amn.width;
-      console.log('**********widhtChange******originalWidth', node.width, width)
 
       return amn;
     };
@@ -905,12 +895,6 @@ export async function renderSvg(
       let endPt: { x: number; y: number };
       let startStub: { x: number; y: number };
       let endStub: { x: number; y: number };
-
-      const dx = tgtCx - srcCx;
-      const dy = tgtCy - srcCy;
-
-      const horizontalScore = Math.abs(dx);
-      const verticalScore = Math.abs(dy);
 
       if (isVertical) {
         if (tgtTop > srcBot - 10) {
@@ -1330,27 +1314,27 @@ export async function renderSvg(
 
         const offsets = isVertical
           ? [
-            { x: 0, y: 0 },
-            { x: 16, y: 0 },
-            { x: -16, y: 0 },
-            { x: 32, y: 0 },
-            { x: -32, y: 0 },
-            { x: 0, y: textLen / 2 + 10 },
-            { x: 0, y: -(textLen / 2 + 10) },
-            { x: 48, y: 0 },
-            { x: -48, y: 0 },
-          ]
+              { x: 0, y: 0 },
+              { x: 16, y: 0 },
+              { x: -16, y: 0 },
+              { x: 32, y: 0 },
+              { x: -32, y: 0 },
+              { x: 0, y: textLen / 2 + 10 },
+              { x: 0, y: -(textLen / 2 + 10) },
+              { x: 48, y: 0 },
+              { x: -48, y: 0 },
+            ]
           : [
-            { x: 0, y: 0 },
-            { x: 0, y: 16 },
-            { x: 0, y: -16 },
-            { x: 0, y: 32 },
-            { x: 0, y: -32 },
-            { x: textLen / 2 + 10, y: 0 },
-            { x: -(textLen / 2 + 10), y: 0 },
-            { x: 0, y: 48 },
-            { x: 0, y: -48 },
-          ];
+              { x: 0, y: 0 },
+              { x: 0, y: 16 },
+              { x: 0, y: -16 },
+              { x: 0, y: 32 },
+              { x: 0, y: -32 },
+              { x: textLen / 2 + 10, y: 0 },
+              { x: -(textLen / 2 + 10), y: 0 },
+              { x: 0, y: 48 },
+              { x: 0, y: -48 },
+            ];
 
         for (const off of offsets) {
           const cx = labelX + off.x;
@@ -1732,12 +1716,11 @@ export async function renderSvg(
           dominant-baseline="auto">${escapeXml(truncate(line2))}</text>`;
       }
 
+      const contents: string[] = node?.properties?.contents || [];
 
-      const contents: string[] = node?.properties?.contents;
-
-      if (contents) {
-        const GROUP_PADDING = 16;      // padding from card edge
-        const INNER_PADDING = 12;      // padding inside dashed border
+      if (contents.length > 0) {
+        const GROUP_PADDING = 16; // padding from card edge
+        const INNER_PADDING = 12; // padding inside dashed border
         const ITEM_H = 26;
         const ITEM_GAP = 10;
 
