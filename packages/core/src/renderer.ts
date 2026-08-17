@@ -628,33 +628,33 @@ function routeOrthogonalGlobalEdge(
       routeOptions.push(
         preferVertical
           ? {
-            points: [
-              startPoint,
-              startStub,
-              { x: startStub.x, y: yTrack },
-              { x: xTrack, y: yTrack },
-              { x: xTrack, y: endStub.y },
-              endStub,
-              endPoint,
-            ],
-            xTrack,
-            yTrack,
-            bends: 4,
-          }
+              points: [
+                startPoint,
+                startStub,
+                { x: startStub.x, y: yTrack },
+                { x: xTrack, y: yTrack },
+                { x: xTrack, y: endStub.y },
+                endStub,
+                endPoint,
+              ],
+              xTrack,
+              yTrack,
+              bends: 4,
+            }
           : {
-            points: [
-              startPoint,
-              startStub,
-              { x: xTrack, y: startStub.y },
-              { x: xTrack, y: yTrack },
-              { x: endStub.x, y: yTrack },
-              endStub,
-              endPoint,
-            ],
-            xTrack,
-            yTrack,
-            bends: 4,
-          }
+              points: [
+                startPoint,
+                startStub,
+                { x: xTrack, y: startStub.y },
+                { x: xTrack, y: yTrack },
+                { x: endStub.x, y: yTrack },
+                endStub,
+                endPoint,
+              ],
+              xTrack,
+              yTrack,
+              bends: 4,
+            }
       );
     }
   }
@@ -1976,7 +1976,7 @@ function chooseConflictAwareOrthogonalSides(
   const horizontalLocalRelationship =
     (source.x + source.w <= target.x || target.x + target.w <= source.x) &&
     Math.max(source.y, target.y) <=
-    Math.min(source.y + source.h, target.y + target.h);
+      Math.min(source.y + source.h, target.y + target.h);
 
   if (horizontalLocalRelationship) {
     return source.x + source.w <= target.x
@@ -3019,10 +3019,10 @@ export async function renderSvg(
 
     const orderedOriginalEdges = isOrthogonalLayout
       ? [...allOriginalEdges].sort(
-        (a, b) =>
-          directPriority(a) - directPriority(b) ||
-          edgeRouteDistance(a) - edgeRouteDistance(b)
-      )
+          (a, b) =>
+            directPriority(a) - directPriority(b) ||
+            edgeRouteDistance(a) - edgeRouteDistance(b)
+        )
       : allOriginalEdges;
 
     orderedOriginalEdges.forEach((origEdge) => {
@@ -3184,9 +3184,9 @@ export async function renderSvg(
           );
           const directConnectionHasConflict = directConnection
             ? countOrthogonalRouteSegmentConflicts(
-              [directConnection.startPoint, directConnection.endPoint],
-              orthogonalRoutedSegments
-            ) > 0
+                [directConnection.startPoint, directConnection.endPoint],
+                orthogonalRoutedSegments
+              ) > 0
             : false;
 
           if (directConnection && !directConnectionHasConflict) {
@@ -3777,35 +3777,35 @@ export async function renderSvg(
       const endpointBoxes =
         srcPos && tgtPos && srcNode && tgtNode
           ? [
-            {
-              x: srcPos.x,
-              y: srcPos.y,
-              w: srcNode.width || 0,
-              h: srcNode.height || 0,
-            },
-            {
-              x: tgtPos.x,
-              y: tgtPos.y,
-              w: tgtNode.width || 0,
-              h: tgtNode.height || 0,
-            },
-          ]
+              {
+                x: srcPos.x,
+                y: srcPos.y,
+                w: srcNode.width || 0,
+                h: srcNode.height || 0,
+              },
+              {
+                x: tgtPos.x,
+                y: tgtPos.y,
+                w: tgtNode.width || 0,
+                h: tgtNode.height || 0,
+              },
+            ]
           : [];
       const leafObstacles =
         srcId && tgtId
           ? allNodeBoxes
-            .filter(
-              (box) =>
-                !box.isContainer && box.id !== srcId && box.id !== tgtId
-            )
-            .map((box) => ({
-              id: box.id,
-              x: box.x,
-              y: box.y,
-              w: box.right - box.x,
-              h: box.bottom - box.y,
-              isLeaf: true,
-            }))
+              .filter(
+                (box) =>
+                  !box.isContainer && box.id !== srcId && box.id !== tgtId
+              )
+              .map((box) => ({
+                id: box.id,
+                x: box.x,
+                y: box.y,
+                w: box.right - box.x,
+                h: box.bottom - box.y,
+                isLeaf: true,
+              }))
           : [];
 
       for (const section of edge.sections || []) {
@@ -3994,40 +3994,40 @@ export async function renderSvg(
 
         const offsets = isVertical
           ? [
-            { x: 0, y: 0 },
-            { x: 16, y: 0 },
-            { x: -16, y: 0 },
-            { x: 32, y: 0 },
-            { x: -32, y: 0 },
-            { x: 0, y: textLen / 2 + 10 },
-            { x: 0, y: -(textLen / 2 + 10) },
-            { x: 48, y: 0 },
-            { x: -48, y: 0 },
-          ]
+              { x: 0, y: 0 },
+              { x: 16, y: 0 },
+              { x: -16, y: 0 },
+              { x: 32, y: 0 },
+              { x: -32, y: 0 },
+              { x: 0, y: textLen / 2 + 10 },
+              { x: 0, y: -(textLen / 2 + 10) },
+              { x: 48, y: 0 },
+              { x: -48, y: 0 },
+            ]
           : isOrthogonalLayout
             ? [
-              { x: 0, y: 0 },
-              { x: 0, y: 16 },
-              { x: 0, y: 32 },
-              { x: 0, y: 48 },
-              { x: 0, y: -16 },
-              { x: 0, y: -32 },
-              { x: textLen / 2 + 10, y: 0 },
-              { x: -(textLen / 2 + 10), y: 0 },
-              { x: 0, y: 64 },
-              { x: 0, y: -48 },
-            ]
+                { x: 0, y: 0 },
+                { x: 0, y: 16 },
+                { x: 0, y: 32 },
+                { x: 0, y: 48 },
+                { x: 0, y: -16 },
+                { x: 0, y: -32 },
+                { x: textLen / 2 + 10, y: 0 },
+                { x: -(textLen / 2 + 10), y: 0 },
+                { x: 0, y: 64 },
+                { x: 0, y: -48 },
+              ]
             : [
-              { x: 0, y: 0 },
-              { x: 0, y: 16 },
-              { x: 0, y: -16 },
-              { x: 0, y: 32 },
-              { x: 0, y: -32 },
-              { x: textLen / 2 + 10, y: 0 },
-              { x: -(textLen / 2 + 10), y: 0 },
-              { x: 0, y: 48 },
-              { x: 0, y: -48 },
-            ];
+                { x: 0, y: 0 },
+                { x: 0, y: 16 },
+                { x: 0, y: -16 },
+                { x: 0, y: 32 },
+                { x: 0, y: -32 },
+                { x: textLen / 2 + 10, y: 0 },
+                { x: -(textLen / 2 + 10), y: 0 },
+                { x: 0, y: 48 },
+                { x: 0, y: -48 },
+              ];
 
         for (const off of offsets) {
           const cx = labelX + off.x;
@@ -4557,19 +4557,19 @@ export async function renderSvg(
     const maxLegendY = Math.max(20, height - LEGEND_H - 20);
     const candidatePositions = isOrthogonalLayout
       ? // Prefer bottom-left outright, then scan upward only as far as
-      // needed to clear a leaf node — the opposite order from custom/elk
-      // below, which scan from the top and so tend to settle near the
-      // diagram's entry point instead of the bottom corner.
-      [
-        { x: 20, y: maxLegendY },
-        { x: LX, y: LY },
-      ]
+        // needed to clear a leaf node — the opposite order from custom/elk
+        // below, which scan from the top and so tend to settle near the
+        // diagram's entry point instead of the bottom corner.
+        [
+          { x: 20, y: maxLegendY },
+          { x: LX, y: LY },
+        ]
       : [
-        { x: LX, y: LY },
-        { x: 20, y: LY },
-        { x: width - LEGEND_W - 20, y: 20 },
-        { x: 20, y: 20 },
-      ];
+          { x: LX, y: LY },
+          { x: 20, y: LY },
+          { x: width - LEGEND_W - 20, y: 20 },
+          { x: 20, y: 20 },
+        ];
     if (isOrthogonalLayout) {
       for (let y = maxLegendY; y >= 20; y -= 20) {
         candidatePositions.push({ x: 20, y });
