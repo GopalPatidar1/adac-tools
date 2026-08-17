@@ -144,5 +144,5 @@ export interface AdacConfig {
     clouds: AdacCloud[];
   };
   connections?: AdacConnection[];
-  layout?: 'elk' | 'custom';
+  layout?: 'elk' | 'custom' | 'orthogonal' | 'tsm';
 }
