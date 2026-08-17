@@ -29,14 +29,14 @@ This document outlines the API surface for core ADAC packages.
 
 Generates an SVG diagram from YAML content. Runs compliance checks and the architecture optimizer automatically.
 
-| Parameter       | Type                     | Default     | Description                   |
-| --------------- | ------------------------ | ----------- | ----------------------------- |
-| `yaml`          | `string`                 | —           | ADAC YAML content             |
-| `layoutEngine`  | `'elk' \| 'custom'`      | `'elk'`     | Graph layout algorithm        |
-| `validate`      | `boolean`                | `false`     | Validate schema before layout |
-| `costData`      | `Record<string, number>` | —           | Per-service cost overrides    |
-| `period`        | `string`                 | `'monthly'` | Cost display period           |
-| `skipOptimizer` | `boolean`                | `false`     | Skip optimization analysis    |
+| Parameter       | Type                                         | Default     | Description                   |
+| --------------- | -------------------------------------------- | ----------- | ----------------------------- |
+| `yaml`          | `string`                                     | —           | ADAC YAML content             |
+| `layoutEngine`  | `'elk' \| 'custom' \| 'orthogonal' \| 'tsm'` | `'custom'`  | Graph layout algorithm        |
+| `validate`      | `boolean`                                    | `false`     | Validate schema before layout |
+| `costData`      | `Record<string, number>`                     | —           | Per-service cost overrides    |
+| `period`        | `string`                                     | `'monthly'` | Cost display period           |
+| `skipOptimizer` | `boolean`                                    | `false`     | Skip optimization analysis    |
 
 **Returns:** `Promise<GenerationResult>`
 
@@ -66,7 +66,7 @@ File-based wrapper. Reads YAML from `input` and writes SVG to `output`.
 
 ```
 adac diagram <file>   Generate SVG diagram
-  -l, --layout <type>     elk | custom (default: elk)
+  -l, --layout <type>     elk | custom | orthogonal | tsm (default: custom)
   -o, --output <path>     Output SVG path
   --validate              Run schema validation
   --cost                  Print cost breakdown
