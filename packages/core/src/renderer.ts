@@ -2563,6 +2563,14 @@ export async function renderSvg(
           let maxChildWidth = 0;
           let maxChildHeight = 0;
 
+          if (isOrthogonalLayout) {
+            maxChildWidth = 400;
+            for (const c of nonAzChildren) {
+              if (c.width && c.width > maxChildWidth) {
+                maxChildWidth = c.width;
+              }
+            }
+          }
           // Orthogonal favors a single vertical column over a square-ish
           // grid for small lists of leaves (e.g. API Service 1/2/3): it
           // reads as a clean stacked list and avoids widening the container
@@ -2612,13 +2620,15 @@ export async function renderSvg(
           }
 
           for (let i = 0; i < numCols; i++) {
-            const width = nonAzChildren[i]?.width ?? maxChildWidth;
+            const width = isOrthogonalLayout
+              ? maxChildWidth
+              : (nonAzChildren[i]?.width ?? maxChildWidth);
             const height = nonAzChildren[i]?.height ?? maxChildHeight;
 
             const colObj = {
-              x,
+              x: isOrthogonalLayout ? i * (maxChildWidth + NODE_GAP_X) : x,
               w: width,
-              y,
+              y: isOrthogonalLayout ? CONTAINER_TOP : y,
             };
 
             if (isVetical) y += NODE_GAP_Y + height;
@@ -2810,7 +2820,9 @@ export async function renderSvg(
         });
       }
 
-      const width = Math.max(maxX + CONTAINER_PAD, minLabelWidth);
+      const width = isOrthogonalLayout
+        ? Math.max(contentWidth, minLabelWidth)
+        : Math.max(maxX + CONTAINER_PAD, minLabelWidth);
       const amn = {
         ...node,
         width,
