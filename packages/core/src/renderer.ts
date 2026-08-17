@@ -2643,14 +2643,7 @@ export async function renderSvg(
             //   if (col.y < minCol.y) minCol = col;
             // }
 
-            positionedNonAz.push({
-              ...c,
-              x: minCol.x + CONTAINER_PAD,
-              y: minCol.y,
-            });
             colAssignment.set(c.id, minCol.x);
-
-            // const minCol = columns[index % numCols];
 
             positionedNonAz.push({
               ...c,
